@@ -22,6 +22,16 @@ jobs:
     - name: Verify Node.js Version
       run: node -v
 
+    - name: Print Debug Variables
+      run: |
+        echo "--- Debugging Cortex CLI Inputs ---"
+        echo "Directory: ${{ github.workspace }}"
+        echo "Repo ID: ${{ github.repository }}"
+        echo "Branch: ${{ github.ref_name }}"
+        echo "URL: ${{ github.server_url }}/${{ github.repository }}"
+        echo "Source: GITHUB_ACTIONS"
+        echo "-----------------------------------"
+
     - name: Download cortexcli
       run: |
         set -x
@@ -32,16 +42,6 @@ jobs:
         curl -o cortexcli $crtx_url
         chmod +x cortexcli
         ./cortexcli --version
-
-    - name: Print Debug Variables
-      run: |
-        echo "--- Debugging Cortex CLI Inputs ---"
-        echo "Directory: ${{ github.workspace }}"
-        echo "Repo ID: ${{ github.repository }}"
-        echo "Branch: ${{ github.ref_name }}"
-        echo "URL: ${{ github.server_url }}/${{ github.repository }}"
-        echo "Source: GITHUB_ACTIONS"
-        echo "-----------------------------------"
 
     - name: Run Cortex CLI Code Scan
       run: |
