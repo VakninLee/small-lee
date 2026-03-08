@@ -1,7 +1,62 @@
 name: GitHub Actions Demo
 run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
 on: [push]
+env:
+  CORTEX_API_KEY: F3FD4ws1IoducBLozIlNAXQKQeGtLrjFpt8W7nlrf7Hx0UU218XozG5cJnWHWhZq2xL760MiIiHVPlfQzTsR2O2oczjo6zY7kKp90uiXLlE27neexSF3CEU8Iv714xxS
+  CORTEX_API_KEY_ID: 11
+  CORTEX_API_URL: https://api-viso-jjdnqjeut5s7vusrj8qf5z.xdr-qa2-uat.us.paloaltonetworks.com
+ 
 jobs:
+  cortex-code-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22
+
+    - name: Verify Node.js Version
+      run: node -v
+
+    - name: Download cortexcli
+      run: |
+        set -x
+        crtx_resp=$(curl "${CORTEX_API_URL}/public_api/v1/unified-cli/releases/download-link?os=linux&architecture=arm64" \
+          -H "x-xdr-auth-id: ${CORTEX_API_KEY_ID}" \
+          -H "Authorization: ${CORTEX_API_KEY}")
+        crtx_url=$(echo $crtx_resp | jq -r ".signed_url")
+        curl -o cortexcli $crtx_url
+        chmod +x cortexcli
+        ./cortexcli --version
+
+    - name: Print Debug Variables
+      run: |
+        echo "--- Debugging Cortex CLI Inputs ---"
+        echo "Directory: ${{ github.workspace }}"
+        echo "Repo ID: ${{ github.repository }}"
+        echo "Branch: ${{ github.ref_name }}"
+        echo "URL: ${{ github.server_url }}/${{ github.repository }}"
+        echo "Source: GITHUB_ACTIONS"
+        echo "-----------------------------------"
+
+    - name: Run Cortex CLI Code Scan
+      run: |
+        ./cortexcli \
+          --api-base-url "${CORTEX_API_URL}" \
+          --api-key "${CORTEX_API_KEY}" \
+          --api-key-id "${CORTEX_API_KEY_ID}" \
+          code scan \
+          --directory "${{github.workspace}}" \
+          --repo-id "${{github.repository}}" \
+          --branch "${{github.ref_name}}" \
+          --url "${{ github.server_url }}/${{ github.repository }}"
+          --source "GITHUB_ACTIONS" \
+          --create-repo-if-missing
+
   Explore-GitHub-Actions:
     runs-on: ubuntu-latest
     steps:
